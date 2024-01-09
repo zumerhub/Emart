@@ -1,0 +1,14 @@
+{
+    "editor.autoClosingBrackets": "always",
+    "editor.defaultFormatter": "junstyle.vscode-django-support",
+    "files.autoSave": "onFocusChange",
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}

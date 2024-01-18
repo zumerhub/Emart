@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+const { S3Client } = require('@aws-sdk/client-s3');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -14,7 +15,7 @@ const hash = require('random-hash');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
-// const winston = require('winston');
+const multerS3 = require('multer-s3');
 
 const errorController = require('./controllers/error');
 const shopController = require('./controllers/shop');
@@ -67,6 +68,9 @@ app.set('views', 'views');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
+const { mapValueFieldNames } = require('sequelize/types/lib/utils');
+
+
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, 'access.log'), { flags: 'a' });
@@ -74,7 +78,24 @@ const accessLogStream = fs.createWriteStream(
 app.use(helmet());
 app.use(compression());
 app.use(morgan('combined', { stream: accessLogStream }));
-// winston.log('info', 'Hello log files!!!', { someKey: 'Welcome'});
+
+
+const s3 = new S3Client();
+
+const upload = multer({
+  storage: multerS3({
+    s3: s3, bucket: 'some-bucket', metadata: function (req, file, cb) {
+cb(null, {fieldName: file.filename});
+    },
+    key: function (req, file, cb) {
+      cb(null, Date.now().toString())
+    }
+  })
+})
+
+app.post('/upload', upload.array('photos', 3), function(req, res, next) {
+  res.send('Successfully uploaded ' + req.files.length + ' files!')
+})
 
 //const { fileLoader } = require('ejs');
 
@@ -161,7 +182,7 @@ mongoose
     // https
     //   .createServer({ key: privateKey, cert: certificate }, app)
     //   .listen(process.env.PORT || 3001);
-      app.listen(process.env.PORT || 3001);
+    app.listen(process.env.PORT || 3001);
   })
   .catch(err => {
     console.log(err);
